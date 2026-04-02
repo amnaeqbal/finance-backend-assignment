@@ -216,5 +216,11 @@ This project includes Swagger API documentation.
    ```bash
    npm install
    npm start
+2. Open in browser:
+   ```bash
+   http://localhost:3000/api-docs
+
+
+
 
    
