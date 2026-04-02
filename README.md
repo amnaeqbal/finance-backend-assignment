@@ -206,3 +206,15 @@ finance-backend/
 - Password reset flow isn't implemented
 - The dashboard queries scan all records every time. For a large dataset you'd want materialized views or caching, but that's overkill here
 - Search only works on the notes field (doesn't search categories or other fields)
+
+## 📄 API Documentation
+
+This project includes Swagger API documentation.
+
+### To view the API docs:
+1. Run the project:
+   ```bash
+   npm install
+   npm start
+
+   
