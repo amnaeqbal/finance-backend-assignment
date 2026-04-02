@@ -207,21 +207,7 @@ finance-backend/
 - The dashboard queries scan all records every time. For a large dataset you'd want materialized views or caching, but that's overkill here
 - Search only works on the notes field (doesn't search categories or other fields)
 
-## 📄 API Documentation
 
-This project includes interactive API documentation using **Swagger (OpenAPI 3.0)**.
-
-The documentation provides a complete overview of all available endpoints, request formats, and responses.
-
-###  How to Run the Project
-
-1. Run the project:
-   ```bash
-   npm install
-   npm start
-2. Open in browser:
-   ```bash
-   http://localhost:3000/api-docs
 
 
 
