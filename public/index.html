@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+    }
+
+    /* ---- Layout ---- */
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 220px;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 24px 0;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 16px;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid #2d2d44;
+      margin-bottom: 8px;
+    }
+    .sidebar .user-info {
+      padding: 12px 20px;
+      font-size: 12px;
+      color: #8888aa;
+      border-bottom: 1px solid #2d2d44;
+      margin-bottom: 8px;
+    }
+    .sidebar .user-info .name { color: #fff; font-size: 13px; font-weight: 600; }
+    .sidebar .user-info .role {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .role-admin { background: #e74c3c33; color: #e74c3c; }
+    .role-analyst { background: #3498db33; color: #3498db; }
+    .role-viewer { background: #2ecc7133; color: #2ecc71; }
+
+    .nav-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-item:hover { background: #2d2d44; }
+    .nav-item.active { background: #16213e; border-left: 3px solid #4361ee; }
+    .nav-item .icon { width: 16px; text-align: center; }
+
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      padding: 24px 32px;
+    }
+
+    /* ---- Login Screen ---- */
+    .login-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+    .login-box {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-box h1 { font-size: 22px; margin-bottom: 6px; }
+    .login-box p { color: #666; font-size: 13px; margin-bottom: 24px; }
+
+    /* ---- Forms ---- */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #555; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #4361ee; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #4361ee; color: #fff; }
+    .btn-danger { background: #e74c3c; color: #fff; }
+    .btn-success { background: #2ecc71; color: #fff; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #ddd;
+      color: #555;
+    }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+    .btn-full { width: 100%; padding: 10px; }
+
+    .quick-login {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+    .quick-login p { font-size: 11px; color: #999; margin-bottom: 8px; }
+    .quick-login-btns { display: flex; gap: 6px; }
+    .quick-login-btns .btn { flex: 1; font-size: 11px; padding: 6px; }
+
+    /* ---- Cards ---- */
+    .page-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .stat-card .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+    .stat-card .value.income { color: #2ecc71; }
+    .stat-card .value.expense { color: #e74c3c; }
+    .stat-card .value.net { color: #4361ee; }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ---- Tables ---- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #f0f2f5;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    tr:hover { background: #fafbfc; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-income { background: #d4edda; color: #155724; }
+    .badge-expense { background: #f8d7da; color: #721c24; }
+    .badge-active { background: #d4edda; color: #155724; }
+    .badge-inactive { background: #f8d7da; color: #721c24; }
+
+    /* ---- Filters ---- */
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .filters .form-group { margin-bottom: 0; min-width: 140px; }
+
+    /* ---- Modal ---- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px;
+      width: 440px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal h3 { margin-bottom: 16px; font-size: 16px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ---- Monthly Chart (simple CSS bars) ---- */
+    .bar-chart { margin-top: 8px; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .bar-label { width: 70px; color: #666; flex-shrink: 0; }
+    .bar-track { flex: 1; height: 20px; background: #f0f2f5; border-radius: 4px; overflow: hidden; display: flex; }
+    .bar-fill-income { background: #2ecc71; height: 100%; transition: width 0.4s; }
+    .bar-fill-expense { background: #e74c3c; height: 100%; transition: width 0.4s; }
+    .bar-value { width: 90px; text-align: right; font-size: 11px; color: #888; flex-shrink: 0; }
+
+    /* ---- Category Breakdown ---- */
+    .cat-list { list-style: none; }
+    .cat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 13px;
+    }
+    .cat-item:last-child { border-bottom: none; }
+    .cat-name { font-weight: 500; }
+    .cat-total { font-weight: 700; }
+
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #2ecc71; }
+    .toast.error { background: #e74c3c; }
+
+    .pagination {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 16px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .hidden { display: none; }
+    .text-center { text-align: center; }
+    .text-muted { color: #888; font-size: 12px; }
+    .mt-8 { margin-top: 8px; }
+    .mb-12 { margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- Toast notification -->
+<div id="toast" class="toast"></div>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <h1>Finance Dashboard</h1>
+    <p>Sign in to manage financial records and view analytics</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@example.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="password123">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="handleLogin()">Sign In</button>
+    <div class="quick-login">
+      <p>Quick login with seed accounts:</p>
+      <div class="quick-login-btns">
+        <button class="btn btn-outline" onclick="quickLogin('admin')">Admin</button>
+        <button class="btn btn-outline" onclick="quickLogin('analyst')">Analyst</button>
+        <button class="btn btn-outline" onclick="quickLogin('viewer')">Viewer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="appScreen" class="app hidden">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Finance App</h2>
+    <div class="user-info" id="sidebarUserInfo"></div>
+    <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+      <span class="icon">&#9632;</span> Dashboard
+    </div>
+    <div class="nav-item" data-page="records" onclick="switchPage('records')">
+      <span class="icon">&#9776;</span> Records
+    </div>
+    <div class="nav-item" data-page="users" onclick="switchPage('users')" id="navUsers">
+      <span class="icon">&#9824;</span> Users
+    </div>
+    <div class="nav-item" style="margin-top: auto; border-top: 1px solid #2d2d44; padding-top: 14px;" onclick="logout()">
+      <span class="icon">&#8617;</span> Logout
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- DASHBOARD PAGE -->
+    <div id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="stats-grid" id="summaryCards"></div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="card">
+          <div class="card-title">Monthly Trends</div>
+          <div id="monthlyChart" class="bar-chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Category Breakdown</div>
+          <ul id="categoryList" class="cat-list"></ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent Transactions</div>
+        <table>
+          <thead><tr><th>Date</th><th>Category</th><th>Type</th><th>Notes</th><th style="text-align:right">Amount</th></tr></thead>
+          <tbody id="recentTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECORDS PAGE -->
+    <div id="page-records" class="hidden">
+      <div class="card-title" style="font-size:20px; margin-bottom:16px;">
+        Financial Records
+        <button class="btn btn-primary btn-sm" id="addRecordBtn" onclick="openRecordModal()">+ Add Record</button>
+      </div>
+
+      <div class="card">
+        <div class="filters">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="filterType" onchange="loadRecords()">
+              <option value="">All</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="filterCategory" placeholder="e.g. Rent" onchange="loadRecords()">
+          </div>
+          <div class="form-group">
+            <label>Search notes</label>
+            <input type="text" id="filterSearch" placeholder="keyword..." onchange="loadRecords()">
+          </div>
+          <div class="form-group">
+            <label>From</label>
+            <input type="date" id="filterFrom" onchange="loadRecords()">
+          </div>
+          <div class="form-group">
+            <label>To</label>
+            <input type="date" id="filterTo" onchange="loadRecords()">
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Category</th><th>Type</th><th>Notes</th><th style="text-align:right">Amount</th><th style="text-align:right">Actions</th></tr>
+          </thead>
+          <tbody id="recordsTable"></tbody>
+        </table>
+        <div id="recordsPagination" class="pagination"></div>
+      </div>
+    </div>
+
+    <!-- USERS PAGE (admin only) -->
+    <div id="page-users" class="hidden">
+      <div class="page-title">User Management</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Record Modal -->
+<div class="modal-overlay" id="recordModal">
+  <div class="modal">
+    <h3 id="recordModalTitle">Add Record</h3>
+    <input type="hidden" id="editRecordId">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="recAmount" min="0" step="0.01" placeholder="5000">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="recType">
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" id="recCategory" placeholder="Salary, Rent, etc.">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="recDate">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="recNotes" rows="2" placeholder="Any details..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeRecordModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRecord()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- State ----
+  const API = 'http://localhost:3000/api';
+  let token = null;
+  let currentUser = null;
+  let currentPage = 1;
+
+  // ---- Utils ----
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  async function api(path, options = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}${path}`, { ...options, headers });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  function formatMoney(n) {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+  }
+
+  function formatDate(d) {
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ---- Auth ----
+  async function handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    try {
+      const data = await api('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      token = data.token;
+      currentUser = data.user;
+      showApp();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  function quickLogin(role) {
+    document.getElementById('loginEmail').value = `${role}@example.com`;
+    document.getElementById('loginPassword').value = 'password123';
+    handleLogin();
+  }
+
+  function logout() {
+    token = null;
+    currentUser = null;
+    document.getElementById('appScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+
+  function showApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+
+    // sidebar user info
+    const info = document.getElementById('sidebarUserInfo');
+    info.innerHTML = `
+      <div class="name">${currentUser.name}</div>
+      <span class="role role-${currentUser.role}">${currentUser.role}</span>
+    `;
+
+    // hide users nav for non-admins
+    document.getElementById('navUsers').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+
+    // hide add record button for non-admins
+    document.getElementById('addRecordBtn').style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
+
+    switchPage('dashboard');
+  }
+
+  // ---- Navigation ----
+  function switchPage(page) {
+    document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
+    document.getElementById(`page-${page}`).classList.remove('hidden');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'records') loadRecords();
+    if (page === 'users') loadUsers();
+  }
+
+  // ---- Dashboard ----
+  async function loadDashboard() {
+    try {
+      const [summary, categories, recent, monthly] = await Promise.all([
+        api('/dashboard/summary'),
+        api('/dashboard/category-breakdown'),
+        api('/dashboard/recent?limit=8'),
+        api('/dashboard/monthly')
+      ]);
+
+      // summary cards
+      document.getElementById('summaryCards').innerHTML = `
+        <div class="stat-card">
+          <div class="label">Total Income</div>
+          <div class="value income">${formatMoney(summary.totalIncome)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Expenses</div>
+          <div class="value expense">${formatMoney(summary.totalExpenses)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Net Balance</div>
+          <div class="value net">${formatMoney(summary.netBalance)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Transactions</div>
+          <div class="value">${recent.transactions.length}+</div>
+        </div>
+      `;
+
+      // monthly chart
+      const maxAmount = Math.max(...monthly.monthly.flatMap(m => [m.income, m.expenses]), 1);
+      document.getElementById('monthlyChart').innerHTML = monthly.monthly.slice(0, 6).map(m => `
+        <div class="bar-row">
+          <div class="bar-label">${m.month}</div>
+          <div class="bar-track">
+            <div class="bar-fill-income" style="width: ${(m.income / maxAmount) * 100}%"></div>
+            <div class="bar-fill-expense" style="width: ${(m.expenses / maxAmount) * 100}%"></div>
+          </div>
+          <div class="bar-value">Net: ${formatMoney(m.net)}</div>
+        </div>
+      `).join('');
+
+      // category breakdown
+      document.getElementById('categoryList').innerHTML = categories.breakdown.map(c => `
+        <li class="cat-item">
+          <span class="cat-name">${c.category} <span class="badge badge-${c.type}">${c.type}</span></span>
+          <span class="cat-total">${formatMoney(c.total)} (${c.count})</span>
+        </li>
+      `).join('');
+
+      // recent transactions
+      document.getElementById('recentTable').innerHTML = recent.transactions.map(t => `
+        <tr>
+          <td>${formatDate(t.date)}</td>
+          <td>${t.category}</td>
+          <td><span class="badge badge-${t.type}">${t.type}</span></td>
+          <td class="text-muted">${t.notes || '-'}</td>
+          <td style="text-align:right; font-weight:600; color:${t.type === 'income' ? '#2ecc71' : '#e74c3c'}">${formatMoney(t.amount)}</td>
+        </tr>
+      `).join('');
+
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  // ---- Records ----
+  async function loadRecords() {
+    try {
+      let params = new URLSearchParams();
+      params.set('page', currentPage);
+      params.set('limit', 10);
+
+      const type = document.getElementById('filterType').value;
+      const cat = document.getElementById('filterCategory').value;
+      const search = document.getElementById('filterSearch').value;
+      const from = document.getElementById('filterFrom').value;
+      const to = document.getElementById('filterTo').value;
+
+      if (type) params.set('type', type);
+      if (cat) params.set('category', cat);
+      if (search) params.set('search', search);
+      if (from) params.set('start_date', from);
+      if (to) params.set('end_date', to);
+
+      const data = await api(`/records?${params}`);
+      const isAdmin = currentUser.role === 'admin';
+
+      document.getElementById('recordsTable').innerHTML = data.records.length === 0
+        ? '<tr><td colspan="6" class="text-center text-muted" style="padding:24px">No records found</td></tr>'
+        : data.records.map(r => `
+        <tr>
+          <td>${formatDate(r.date)}</td>
+          <td>${r.category}</td>
+          <td><span class="badge badge-${r.type}">${r.type}</span></td>
+          <td class="text-muted">${r.notes || '-'}</td>
+          <td style="text-align:right; font-weight:600">${formatMoney(r.amount)}</td>
+          <td style="text-align:right">
+            ${isAdmin ? `
+              <button class="btn btn-outline btn-sm" onclick="editRecord(${r.id})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})">Del</button>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+
+      // pagination
+      const p = data.pagination;
+      document.getElementById('recordsPagination').innerHTML = `
+        <button class="btn btn-outline btn-sm" ${p.page <= 1 ? 'disabled' : ''} onclick="currentPage--; loadRecords()">Prev</button>
+        <span>Page ${p.page} of ${p.totalPages} (${p.total} records)</span>
+        <button class="btn btn-outline btn-sm" ${p.page >= p.totalPages ? 'disabled' : ''} onclick="currentPage++; loadRecords()">Next</button>
+      `;
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  function clearFilters() {
+    document.getElementById('filterType').value = '';
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterSearch').value = '';
+    document.getElementById('filterFrom').value = '';
+    document.getElementById('filterTo').value = '';
+    currentPage = 1;
+    loadRecords();
+  }
+
+  function openRecordModal(record = null) {
+    document.getElementById('recordModalTitle').textContent = record ? 'Edit Record' : 'Add Record';
+    document.getElementById('editRecordId').value = record ? record.id : '';
+    document.getElementById('recAmount').value = record ? record.amount : '';
+    document.getElementById('recType').value = record ? record.type : 'income';
+    document.getElementById('recCategory').value = record ? record.category : '';
+    document.getElementById('recDate').value = record ? record.date : new Date().toISOString().split('T')[0];
+    document.getElementById('recNotes').value = record ? (record.notes || '') : '';
+    document.getElementById('recordModal').classList.add('open');
+  }
+
+  function closeRecordModal() {
+    document.getElementById('recordModal').classList.remove('open');
+  }
+
+  async function saveRecord() {
+    const id = document.getElementById('editRecordId').value;
+    const body = {
+      amount: parseFloat(document.getElementById('recAmount').value),
+      type: document.getElementById('recType').value,
+      category: document.getElementById('recCategory').value,
+      date: document.getElementById('recDate').value,
+      notes: document.getElementById('recNotes').value || null
+    };
+
+    try {
+      if (id) {
+        await api(`/records/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        toast('Record updated');
+      } else {
+        await api('/records', { method: 'POST', body: JSON.stringify(body) });
+        toast('Record created');
+      }
+      closeRecordModal();
+      loadRecords();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  async function editRecord(id) {
+    try {
+      const data = await api(`/records/${id}`);
+      openRecordModal(data.record);
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm('Delete this record?')) return;
+    try {
+      await api(`/records/${id}`, { method: 'DELETE' });
+      toast('Record deleted');
+      loadRecords();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  // ---- Users ----
+  async function loadUsers() {
+    try {
+      const data = await api('/users');
+      document.getElementById('usersTable').innerHTML = data.users.map(u => `
+        <tr>
+          <td><strong>${u.name}</strong></td>
+          <td class="text-muted">${u.email}</td>
+          <td>
+            <select class="btn btn-outline btn-sm" onchange="changeRole(${u.id}, this.value)" ${u.id === currentUser.id ? 'disabled' : ''}>
+              ${['viewer', 'analyst', 'admin'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+            </select>
+          </td>
+          <td><span class="badge badge-${u.is_active ? 'active' : 'inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td class="text-muted">${new Date(u.created_at).toLocaleDateString()}</td>
+          <td style="text-align:right">
+            ${u.id !== currentUser.id ? `
+              <button class="btn ${u.is_active ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleStatus(${u.id})">
+                ${u.is_active ? 'Deactivate' : 'Activate'}
+              </button>
+            ` : '<span class="text-muted">You</span>'}
+          </td>
+        </tr>
+      `).join('');
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  async function changeRole(userId, role) {
+    try {
+      await api(`/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ role }) });
+      toast(`Role updated to ${role}`);
+    } catch (e) {
+      toast(e.message, 'error');
+      loadUsers();
+    }
+  }
+
+  async function toggleStatus(userId) {
+    try {
+      const data = await api(`/users/${userId}/status`, { method: 'PATCH' });
+      toast(data.message);
+      loadUsers();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
+
+  // Enter key on login
+  document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleLogin();
+  });
+</script>
+</body>
+</html>
