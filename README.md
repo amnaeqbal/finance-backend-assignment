@@ -213,8 +213,6 @@ This project includes interactive API documentation using **Swagger (OpenAPI 3.0
 
 The documentation provides a complete overview of all available endpoints, request formats, and responses.
 
----
-
 ### 🚀 How to Run the Project
 
 1. Run the project:
